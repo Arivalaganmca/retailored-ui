@@ -68,8 +68,8 @@ interface Order {
       status_name: string;
     } | null;
     material: {
-        id: string;
-        name: string;
+      id: string;
+      name: string;
     }
     jobOrderDetails: {
       adminSite?: {
@@ -108,12 +108,12 @@ const SalesOrder = () => {
   const [measurementData, setMeasurementData] = useState<MeasurementData | null>(null);
   const [loadingMeasurements, setLoadingMeasurements] = useState(false);
   const [editMeasurementDialogVisible, setEditMeasurementDialogVisible] = useState(false);
-  const [editedMeasurements, setEditedMeasurements] = useState<{id: string, name: string, value: string}[]>([]);
+  const [editedMeasurements, setEditedMeasurements] = useState<{ id: string, name: string, value: string }[]>([]);
   const [statusSidebarVisible, setStatusSidebarVisible] = useState(false);
   const [measurementDialogVisible, setMeasurementDialogVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Order['orderDetails'][0] | null>(null);
   const [paymentDialogVisible, setPaymentDialogVisible] = useState(false);
-  const [paymentModes, setPaymentModes] = useState<{id: string, mode_name: string}[]>([]);
+  const [paymentModes, setPaymentModes] = useState<{ id: string, mode_name: string }[]>([]);
   const [paymentHistorySidebarVisible, setPaymentHistorySidebarVisible] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [loadingPaymentHistory, setLoadingPaymentHistory] = useState(false);
@@ -126,7 +126,7 @@ const SalesOrder = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
-  const [images, setImages] = useState<{itemImageSrc: string}[]>([]);
+  const [images, setImages] = useState<{ itemImageSrc: string }[]>([]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     perPage: 20,
@@ -250,7 +250,7 @@ const SalesOrder = () => {
     try {
       setListLoading(true);
       const res = await SalesOrderService.getSalesOrderById(orderId);
-    
+
       if (res && res.orderDetails) {
         const detailedOrder: Order = res;
         setSelectedOrder(detailedOrder);
@@ -288,14 +288,14 @@ const SalesOrder = () => {
     setLoadingMeasurements(true);
     try {
       const response = await SalesOrderService.getOrderMeasurements(OrderID);
-      
+
       if (!response) {
         setMeasurementData(null);
         return;
       }
 
       const measurementData = response?.orderDetail?.measurementMain || null;
-      
+
       setMeasurementData(measurementData);
     } catch (error) {
       setMeasurementData(null);
@@ -337,11 +337,11 @@ const SalesOrder = () => {
     }
   };
 
-  const itemTemplate = (item: {itemImageSrc: string}) => {
+  const itemTemplate = (item: { itemImageSrc: string }) => {
     return (
-      <img 
-        src={item.itemImageSrc} 
-        alt="Preview" 
+      <img
+        src={item.itemImageSrc}
+        alt="Preview"
         style={{ width: '100%', display: 'block' }}
         onError={(e) => {
           (e.target as HTMLImageElement).src = 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg';
@@ -349,12 +349,12 @@ const SalesOrder = () => {
       />
     );
   };
-  
-  const thumbnailTemplate = (item: {itemImageSrc: string}) => {
+
+  const thumbnailTemplate = (item: { itemImageSrc: string }) => {
     return (
-      <img 
-        src={item.itemImageSrc} 
-        alt="Thumbnail" 
+      <img
+        src={item.itemImageSrc}
+        alt="Thumbnail"
         style={{ display: 'block', width: '100%' }}
         onError={(e) => {
           (e.target as HTMLImageElement).src = 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg';
@@ -362,15 +362,15 @@ const SalesOrder = () => {
       />
     );
   };
-  
+
   const handleImagePreview = (images: string | string[] | null) => {
     if (!images) return;
-    
+
     const imageArray = Array.isArray(images) ? images : [images];
     const imageUrls = imageArray.map(filename => ({
       itemImageSrc: filename
     }));
-        
+
     setImages(imageUrls);
     setActiveImageIndex(0);
     setImagePreviewVisible(true);
@@ -405,7 +405,7 @@ const SalesOrder = () => {
       });
       return;
     }
-    
+
     try {
       setIsSavingDetails(true);
 
@@ -502,20 +502,20 @@ const SalesOrder = () => {
 
   const handleEditMeasurement = () => {
     if (!measurementData) return;
-    
+
     const measurementsToEdit = measurementData.measurementDetails.map(detail => ({
       id: detail.measurementMaster.id,
       name: detail.measurementMaster.measurement_name,
       value: detail.measurement_val
     }));
-    
+
     setEditedMeasurements(measurementsToEdit);
     setEditMeasurementDialogVisible(true);
   };
 
   const handleMeasurementValueChange = (id: string, value: string) => {
-    setEditedMeasurements(prev => 
-      prev.map(item => 
+    setEditedMeasurements(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, value } : item
       )
     );
@@ -560,14 +560,14 @@ const SalesOrder = () => {
 
   const handlePaymentClick = () => {
     if (selectedOrder) {
-        setPaymentForm({
-            amount: selectedOrder.amt_due.toString(),
-            paymentDate: new Date().toISOString().split('T')[0],
-            paymentMethod: '',
-            reference: ''
-        });
-        setPaymentDialogVisible(true);
-        fetchPaymentModes();
+      setPaymentForm({
+        amount: selectedOrder.amt_due.toString(),
+        paymentDate: new Date().toISOString().split('T')[0],
+        paymentMethod: '',
+        reference: ''
+      });
+      setPaymentDialogVisible(true);
+      fetchPaymentModes();
     }
   };
 
@@ -580,7 +580,7 @@ const SalesOrder = () => {
       });
       return;
     }
-  
+
     try {
       const paymentData = {
         user_id: Number(selectedOrder.user?.id),
@@ -591,7 +591,7 @@ const SalesOrder = () => {
         payment_ref: paymentForm.reference || null,
         payment_amt: parseFloat(paymentForm.amount),
       };
-  
+
       await JobOrderService.createPaymentMain(paymentData);
 
       await Toast.show({
@@ -599,7 +599,7 @@ const SalesOrder = () => {
         duration: 'short',
         position: 'bottom'
       });
-  
+
       setPaymentForm({
         amount: '',
         paymentDate: new Date().toISOString().split('T')[0],
@@ -626,28 +626,28 @@ const SalesOrder = () => {
     setQuantity(maxQty);
     setItemActionSidebarVisible(true);
   };
-  
+
   const handleStatusQuantityChange = (value: number) => {
     if (!selectedDetail) return;
     const maxQty = selectedDetail.ord_qty - selectedDetail.delivered_qty - selectedDetail.cancelled_qty;
     setQuantity(Math.min(Math.max(1, value), maxQty));
   };
-  
+
   const handleDelivered = async () => {
     if (!selectedDetail || !selectedOrder) return;
-    
+
     try {
       await SalesOrderService.markOrderDelivered(
         selectedOrder.id,
         quantity
       );
-      
+
       await Toast.show({
         text: 'Item marked as delivered',
         duration: 'short',
         position: 'bottom'
       });
-      
+
       await fetchOrderDetails(selectedOrder.id);
       setItemActionSidebarVisible(false);
     } catch (err: any) {
@@ -660,22 +660,22 @@ const SalesOrder = () => {
       console.error('Error:', err);
     }
   };
-  
+
   const handleCancelled = async () => {
     if (!selectedDetail || !selectedOrder) return;
-    
+
     try {
       await SalesOrderService.markOrderCancelled(
         selectedOrder.id,
         quantity
       );
-      
+
       await Toast.show({
         text: 'Item marked as cancelled',
         duration: 'short',
         position: 'bottom'
       });
-      
+
       await fetchOrderDetails(selectedOrder.id);
       setItemActionSidebarVisible(false);
     } catch (err: any) {
@@ -689,6 +689,8 @@ const SalesOrder = () => {
     }
   };
 
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
   if (loading && !isFetchingMore && !debouncedSearchTerm) {
     return (
       <div className="flex flex-column p-3 lg:p-5" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -697,7 +699,7 @@ const SalesOrder = () => {
           <Skeleton width="100%" height="2.5rem" className="md:w-20rem" />
           <Skeleton width="100%" height="2.5rem" />
         </div>
-  
+
         <div className="grid">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="col-12 md:col-6 lg:col-4">
@@ -707,9 +709,9 @@ const SalesOrder = () => {
                     <Skeleton width="8rem" height="1.25rem" />
                     <Skeleton width="5rem" height="1.25rem" />
                   </div>
-  
+
                   <Divider className="my-2" />
-  
+
                   <div className="flex flex-column gap-1">
                     <div className="flex justify-content-between">
                       <Skeleton width="6rem" height="1rem" />
@@ -736,9 +738,9 @@ const SalesOrder = () => {
                       <Skeleton width="7rem" height="1rem" />
                     </div>
                   </div>
-  
+
                   <Divider className="my-2" />
-  
+
                   <Skeleton width="5rem" height="1rem" />
                   <Skeleton width="100%" height="2rem" className="mt-2" />
                 </div>
@@ -748,7 +750,7 @@ const SalesOrder = () => {
         </div>
       </div>
     );
-  }  
+  }
 
   return (
     <div className="flex flex-column p-3 lg:p-5" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -757,38 +759,38 @@ const SalesOrder = () => {
         <h2 className="text-2xl m-0">Sales Orders</h2>
         <span className="p-input-icon-left p-input-icon-right w-full">
           <i className="pi pi-search" />
-          <InputText 
+          <InputText
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search"
             className="w-full"
           />
-          
+
           {loading && debouncedSearchTerm ? (
             <i className="pi pi-spin pi-spinner" />
           ) : searchTerm ? (
-            <i 
-              className="pi pi-times cursor-pointer" 
+            <i
+              className="pi pi-times cursor-pointer"
               onClick={() => {
                 setSearchTerm('');
               }}
             />
           ) : null}
         </span>
-        <Button 
-          label="Create Order" 
-          icon="pi pi-plus" 
+        <Button
+          label="Create Order"
+          icon="pi pi-plus"
           onClick={handleAddOrder}
           className="w-full md:w-auto"
           size="small"
         />
       </div>
-      
+
       <div className="grid">
         {orders.length > 0 ? (
           orders.map((order, index) => (
-            <div 
-              key={order.id} 
+            <div
+              key={order.id}
               className="col-12 md:col-6 lg:col-4"
               ref={index === orders.length - 1 ? lastOrderRef : null}
             >
@@ -796,14 +798,14 @@ const SalesOrder = () => {
                 <div className="flex flex-column gap-2">
                   <div className="flex justify-content-between align-items-center">
                     <span className="font-bold">{order.docno}</span>
-                    <Tag 
+                    <Tag
                       value={order.orderStatus?.status_name || 'Unknown'}
-                      severity={getStatusSeverity(order.orderStatus?.status_name)} 
+                      severity={getStatusSeverity(order.orderStatus?.status_name)}
                     />
                   </div>
-                  
+
                   <Divider className="my-2" />
-                  
+
                   <div className="flex flex-column gap-1">
                     <div className="flex justify-content-between">
                       <span className="text-600">Customer:</span>
@@ -822,17 +824,17 @@ const SalesOrder = () => {
                       <span>{getPendingAmountSummary(order)}</span>
                     </div>
                   </div>
-                  
+
                   <Divider className="my-2" />
-                  
+
                   <div className="flex flex-column gap-1">
                     <span className="text-600">Notes:</span>
                     <p className="m-0 text-sm">{order.desc1 || 'No notes'}</p>
                   </div>
-                  
+
                   <div className="mt-3">
-                    <Button 
-                      label="View Details" 
+                    <Button
+                      label="View Details"
                       icon="pi pi-eye"
                       onClick={() => openOrderDetails(order)}
                       className="w-full p-button-sm"
@@ -861,9 +863,9 @@ const SalesOrder = () => {
         </div>
       )}
 
-      <Dialog 
-        header={`Order Details - ${selectedOrder?.docno}`} 
-        visible={visible} 
+      <Dialog
+        header={`Order Details - ${selectedOrder?.docno}`}
+        visible={visible}
         onHide={handleDialogClose}
         maximized={isMaximized}
         onMaximize={(e) => setIsMaximized(e.maximized)}
@@ -908,7 +910,7 @@ const SalesOrder = () => {
               <div className="col-6">
                 <div className="field">
                   <label>Status</label>&nbsp;
-                  <Tag 
+                  <Tag
                     value={selectedOrder.orderStatus?.status_name || 'Unknown'}
                     severity={getStatusSeverity(selectedOrder.orderStatus?.status_name) || undefined}
                     className="text-sm font-semibold"
@@ -919,8 +921,8 @@ const SalesOrder = () => {
               <div className="col-6">
                 <div className="field">
                   <label>Trial Date</label>
-                  <p className="m-0 font-medium">{selectedOrder.orderDetails?.some(item => item.trial_date) 
-                    ? formatDate(new Date(selectedOrder.orderDetails.find(item => item.trial_date)?.trial_date || '')) 
+                  <p className="m-0 font-medium">{selectedOrder.orderDetails?.some(item => item.trial_date)
+                    ? formatDate(new Date(selectedOrder.orderDetails.find(item => item.trial_date)?.trial_date || ''))
                     : 'Not scheduled'}</p>
                 </div>
               </div>
@@ -944,110 +946,119 @@ const SalesOrder = () => {
             </div>
 
             <Divider />
-            
-            <h5 className="m-0 mb-3">Order Items</h5>
+
+            <div className="flex justify-content-between align-items-center mb-3">
+              <h5 className="m-0">Order Items</h5>
+            </div>
 
             {selectedOrder.orderDetails?.map((item) => (
-              <div key={item.id} className="mb-4 surface-50 p-3 border-round">
-                <div className="grid">
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Item Ref</label>
-                      <p className="m-0 font-medium">{item.item_ref || 'Not Available'}</p>
+              <div key={item.id} className="mb-3">
+                <Card className="surface-50">
+                  <div className="flex md:flex-row justify-content-between align-items-start md:align-items-center gap-3 p-3">
+                    <div className="flex sm:flex-row align-items-start sm:align-items-center gap-3 w-full md:w-auto">
+                      <span className="font-semibold text-lg md:text-base">Item Ref: {item.item_ref || 'Not Available'}</span>
+                      <Tag value="Pending" severity="warning" />
                     </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Job Order No</label>
-                      <p className="m-0 font-medium">{item.order_id}</p>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Item Name</label>
-                      <p className="m-0 font-medium">{item.material?.name || 'Not Available'}</p>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Jobber Name</label>
-                      <p className="m-0 font-medium">{item.jobOrderDetails?.[0]?.adminSite?.sitename || 'Not assigned'}</p>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Trial Date</label>
-                      <p className="m-0 font-medium">
-                        {item.trial_date ? formatDate(new Date(item.trial_date)) : 'Not scheduled'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="field">
-                      <label>Amount</label>
-                      <p className="m-0 font-medium">₹ {item.item_amt || 0}</p>
-                    </div>
-                  </div>
-                  <div className="col-12 mt-2">
-                    <div className="grid align-items-start">
-                      <div className="col-9">
-                        <div className="field">
-                          <label>Notes</label>
-                          <p className="m-0 font-medium">{item.desc1 || 'No Notes Available'}</p>
-                        </div>
-                      </div>
-                      <div className="col-3 flex justify-content-end pt-4">
-                        <Button 
-                          icon="pi pi-pencil" 
-                          onClick={() => handleEditOrderDetail(item)}
-                          className="p-button-rounded p-button"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="col-12 mt-2">
-                    <Button
-                      label={`Status (${item.orderStatus?.status_name || 'Unknown'})`}
-                      icon="pi pi-sync"
-                      onClick={() => {
-                        setSelectedDetail(item);
-                        setStatusSidebarVisible(true);
-                      }}
-                      severity={getStatusSeverity(item.orderStatus?.status_name) || undefined}
-                    />
-                  </div>
-
-                  {item?.image_url && item.image_url.length > 0 && (
-                    <div className="col-12 mt-2">
-                      <Button 
-                        label={`View Images (${item.image_url.length})`} 
-                        icon="pi pi-image" 
-                        className="p-button-outlined"
-                        onClick={() => handleImagePreview(item.image_url)}
+                    <div className="flex align-items-center gap-2  md:w-auto justify-content-end">
+                      <Button
+                        label={expandedItems.has(item.id) ? "Hide" : "View"}
+                        icon={expandedItems.has(item.id) ? "pi pi-chevron-up" : "pi pi-chevron-down"}
+                        className="p-button-text p-button-sm"
+                        onClick={() => {
+                          setExpandedItems(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(item.id)) {
+                              newSet.delete(item.id);
+                            } else {
+                              newSet.add(item.id);
+                            }
+                            return newSet;
+                          });
+                        }}
                       />
                     </div>
+                  </div>
+
+                  {expandedItems.has(item.id) && (
+                    <div className="mt-3 pt-3 border-top-1 border-300">
+                      <div className="grid">
+                        <div className="col-12 sm:col-6">
+                          <div className="field">
+                            <label className="block font-medium mb-2">Item Name</label>
+                            <p className="m-0 text-lg sm:text-base">{item.material?.name || 'Not Available'}</p>
+                          </div>
+                        </div>
+                        <div className="col-12 sm:col-6">
+                          <div className="field">
+                            <label className="block font-medium mb-2">Jobber Name</label>
+                            <p className="m-0 text-lg sm:text-base">{item.jobOrderDetails?.[0]?.adminSite?.sitename || 'Not assigned'}</p>
+                          </div>
+                        </div>
+                        <div className="col-12 sm:col-6">
+                          <div className="field">
+                            <label className="block font-medium mb-2">Trial Date</label>
+                            <p className="m-0 text-lg sm:text-base">
+                              {item.trial_date ? formatDate(new Date(item.trial_date)) : 'Not scheduled'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="col-12 sm:col-6">
+                          <div className="field">
+                            <label className="block font-medium mb-2">Amount</label>
+                            <p className="m-0 text-lg sm:text-base">₹ {item.item_amt || 0}</p>
+                          </div>
+                        </div>
+                        <div className="col-12">
+                          <div className="field">
+                            <label>Notes</label>
+                            <p className="m-0 font-medium">{item.desc1 || 'No notes available'}</p>
+                          </div>
+                        </div>
+                        <div className="col-12 mt-2">
+                          <Button
+                            label={`Status (${item.orderStatus?.status_name || 'Unknown'})`}
+                            icon="pi pi-sync"
+                            onClick={() => {
+                              setSelectedDetail(item);
+                              setStatusSidebarVisible(true);
+                            }}
+                            severity={getStatusSeverity(item.orderStatus?.status_name) || undefined}
+                          />
+                        </div>
+
+                        {item?.image_url && item.image_url.length > 0 && (
+                          <div className="col-12 mt-2">
+                            <Button
+                              label={`View Images (${item.image_url.length})`}
+                              icon="pi pi-image"
+                              className="p-button-outlined"
+                              onClick={() => handleImagePreview(item.image_url)}
+                            />
+                          </div>
+                        )}
+
+                        <div className="col-12 mt-2">
+                          <Button
+                            label="View Measurement Details"
+                            icon="pi pi-eye"
+                            className="p-button-outlined"
+                            onClick={() => handleViewMeasurement(item)}
+                          />
+                        </div>
+
+                        <div className="col-12 mt-2">
+                          <Button
+                            label="Update Status"
+                            icon="pi pi-pencil"
+                            onClick={() => openItemActionSidebar(item)}
+                            className="w-full"
+                          />
+                        </div>
+
+                      </div>
+                    </div>
                   )}
-
-                  <div className="col-12 mt-2">
-                    <Button 
-                      label="View Measurement Details" 
-                      icon="pi pi-eye" 
-                      className="p-button-outlined"
-                      onClick={() => handleViewMeasurement(item)}
-                    />
-                  </div>
-
-                  <div className="col-12 mt-2">
-                    <Button 
-                      label="Update Status"
-                      icon="pi pi-pencil" 
-                      onClick={() => openItemActionSidebar(item)}
-                      className="w-full"
-                    />
-                  </div>
-                  <Divider />
-                </div>
+                </Card>
               </div>
             ))}
           </div>
@@ -1058,8 +1069,8 @@ const SalesOrder = () => {
         )}
       </Dialog>
 
-      <Dialog 
-        visible={imagePreviewVisible} 
+      <Dialog
+        visible={imagePreviewVisible}
         onHide={() => setImagePreviewVisible(false)}
         style={{ width: '90vw' }}
       >
@@ -1076,7 +1087,7 @@ const SalesOrder = () => {
         />
       </Dialog>
 
-      <Dialog 
+      <Dialog
         header="Receive Payment"
         visible={paymentDialogVisible}
         onHide={() => setPaymentDialogVisible(false)}
@@ -1090,24 +1101,24 @@ const SalesOrder = () => {
             <label htmlFor="amount" className="font-bold block mb-2">
               Payment Amount (₹)
             </label>
-            <InputText 
-              id="amount" 
-              type="number" 
-              className="w-full" 
+            <InputText
+              id="amount"
+              type="number"
+              className="w-full"
               placeholder="Enter amount"
               value={paymentForm.amount}
               onChange={(e) => {
                 const enteredAmount = parseFloat(e.target.value) || 0;
                 const maxAllowed = selectedOrder?.amt_due || 0;
                 if (enteredAmount <= maxAllowed) {
-                  setPaymentForm({...paymentForm, amount: e.target.value});
+                  setPaymentForm({ ...paymentForm, amount: e.target.value });
                 } else {
                   Toast.show({
                     text: `Amount cannot exceed ₹${maxAllowed}`,
                     duration: 'short',
                     position: 'bottom'
                   });
-                  setPaymentForm({...paymentForm, amount: maxAllowed.toString()});
+                  setPaymentForm({ ...paymentForm, amount: maxAllowed.toString() });
                 }
               }}
               max={selectedOrder?.amt_due}
@@ -1121,7 +1132,7 @@ const SalesOrder = () => {
             <Calendar
               id="paymentDate"
               value={new Date(paymentForm.paymentDate)}
-              onChange={(e) => setPaymentForm({...paymentForm, paymentDate: e.value?.toISOString().split('T')[0] || ''})}
+              onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.value?.toISOString().split('T')[0] || '' })}
               dateFormat="dd-mm-yy"
               showIcon
               className="w-full"
@@ -1132,7 +1143,7 @@ const SalesOrder = () => {
             <label htmlFor="paymentMethod" className="font-bold block mb-2">
               Payment Method
             </label>
-            <Dropdown 
+            <Dropdown
               id="paymentMethod"
               value={paymentForm.paymentMethod}
               options={paymentModes.map(mode => ({
@@ -1142,7 +1153,7 @@ const SalesOrder = () => {
               optionLabel="label"
               placeholder={paymentModes.length ? "Select payment method" : "Loading payment methods..."}
               className="w-full"
-              onChange={(e) => setPaymentForm({...paymentForm, paymentMethod: e.value})}
+              onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.value })}
               disabled={!paymentModes.length}
             />
           </div>
@@ -1151,19 +1162,19 @@ const SalesOrder = () => {
             <label htmlFor="reference" className="font-bold block mb-2">
               Reference/Note
             </label>
-            <InputText 
-              id="reference" 
-              className="w-full" 
+            <InputText
+              id="reference"
+              className="w-full"
               placeholder="Enter reference or note"
               value={paymentForm.reference}
-              onChange={(e) => setPaymentForm({...paymentForm, reference: e.target.value})}
+              onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
             />
           </div>
 
           <div className="flex justify-content-end gap-2 mt-4">
-            <Button 
-              label="Cancel" 
-              icon="pi pi-times" 
+            <Button
+              label="Cancel"
+              icon="pi pi-times"
               className="p-button-secondary"
               onClick={() => {
                 setPaymentDialogVisible(false);
@@ -1175,9 +1186,9 @@ const SalesOrder = () => {
                 });
               }}
             />
-            <Button 
-              label="Confirm" 
-              icon="pi pi-check" 
+            <Button
+              label="Confirm"
+              icon="pi pi-check"
               className="p-button-success"
               onClick={handlePaymentSubmit}
               disabled={!paymentForm.amount || !paymentForm.paymentDate || !paymentForm.paymentMethod || parseFloat(paymentForm.amount) > (selectedOrder?.amt_due || 0)}
@@ -1186,11 +1197,11 @@ const SalesOrder = () => {
         </div>
       </Dialog>
 
-    <Sidebar 
+      <Sidebar
         visible={paymentHistorySidebarVisible}
         onHide={() => setPaymentHistorySidebarVisible(false)}
         position="bottom"
-        style={{ 
+        style={{
           width: '100vw',
           height: '68vh',
           maxHeight: '68vh',
@@ -1238,11 +1249,11 @@ const SalesOrder = () => {
         )}
       </Sidebar>
 
-      <Sidebar 
+      <Sidebar
         visible={itemActionSidebarVisible}
         onHide={() => setItemActionSidebarVisible(false)}
         position="bottom"
-        style={{ 
+        style={{
           width: '100%',
           height: 'auto',
           maxHeight: '80vh',
@@ -1269,12 +1280,12 @@ const SalesOrder = () => {
               <label className="font-bold block mb-2">Quantity</label>
               <div className="flex align-items-center justify-content-between bg-gray-100 p-2 border-round">
                 <Button
-                  icon="pi pi-minus" 
+                  icon="pi pi-minus"
                   onClick={() => handleStatusQuantityChange(quantity - 1)}
                   className="p-button-rounded p-button-text"
                   disabled={quantity <= 1}
                 />
-                <InputText 
+                <InputText
                   value={String(quantity)}
                   onChange={(e) => {
                     const newValue = parseInt(e.target.value) || 1;
@@ -1285,8 +1296,8 @@ const SalesOrder = () => {
                   style={{ width: '60px' }}
                   keyfilter="int"
                 />
-                <Button 
-                  icon="pi pi-plus" 
+                <Button
+                  icon="pi pi-plus"
                   onClick={() => handleStatusQuantityChange(quantity + 1)}
                   className="p-button-rounded p-button-text"
                   disabled={quantity >= (selectedDetail.ord_qty - selectedDetail.delivered_qty - selectedDetail.cancelled_qty)}
@@ -1295,15 +1306,15 @@ const SalesOrder = () => {
             </div>
 
             <div className="flex gap-2 w-full">
-              <Button 
-                label="Cancelled" 
-                icon="pi pi-times" 
+              <Button
+                label="Cancelled"
+                icon="pi pi-times"
                 onClick={() => setConfirmCancelledVisible(true)}
                 className="flex-grow-1 p-button-danger"
               />
-              <Button 
-                label="Delivered" 
-                icon="pi pi-check" 
+              <Button
+                label="Delivered"
+                icon="pi pi-check"
                 onClick={() => setConfirmDeliveredVisible(true)}
                 className="flex-grow-1 p-button-success"
               />
@@ -1312,11 +1323,11 @@ const SalesOrder = () => {
         )}
       </Sidebar>
 
-      <Sidebar 
-        visible={statusSidebarVisible} 
+      <Sidebar
+        visible={statusSidebarVisible}
         onHide={() => setStatusSidebarVisible(false)}
         position="bottom"
-        style={{ 
+        style={{
           width: '100%',
           height: 'auto',
           maxHeight: '62vh',
@@ -1342,10 +1353,10 @@ const SalesOrder = () => {
                   className="w-full p-3 text-lg justify-content-start p-button-outlined"
                   icon={
                     status.name === 'Completed' ? 'pi pi-check-circle' :
-                    status.name === 'In Progress' ? 'pi pi-spinner' :
-                    status.name === 'Pending' ? 'pi pi-clock' :
-                    status.name === 'Cancelled' ? 'pi pi-times-circle' :
-                    'pi pi-info-circle'
+                      status.name === 'In Progress' ? 'pi pi-spinner' :
+                        status.name === 'Pending' ? 'pi pi-clock' :
+                          status.name === 'Cancelled' ? 'pi pi-times-circle' :
+                            'pi pi-info-circle'
                   }
                 />
               </div>
@@ -1354,7 +1365,7 @@ const SalesOrder = () => {
         </div>
       </Sidebar>
 
-      <Dialog 
+      <Dialog
         header="Edit Order Details"
         visible={editOrderDetailDialogVisible}
         onHide={() => setEditOrderDetailDialogVisible(false)}
@@ -1364,13 +1375,13 @@ const SalesOrder = () => {
         blockScroll
         footer={
           <div>
-            <Button 
-              label="Update" 
-              icon="pi pi-check" 
+            <Button
+              label="Update"
+              icon="pi pi-check"
               onClick={handleUpdateOrderDetail}
-              autoFocus 
+              autoFocus
               className="w-full"
-              loading={isSavingDetails} 
+              loading={isSavingDetails}
               disabled={isSavingDetails}
             />
           </div>
@@ -1380,7 +1391,7 @@ const SalesOrder = () => {
           <div className="p-fluid my-4">
             <div className="field">
               <label htmlFor="trialDate">Trial Date</label>
-              <Calendar 
+              <Calendar
                 id="trialDate"
                 value={selectedOrderDetail?.trial_date ? new Date(selectedOrderDetail.trial_date) : null}
                 onChange={(e) => {
@@ -1401,7 +1412,7 @@ const SalesOrder = () => {
 
             <div className="field">
               <label htmlFor="deliveryDate">Delivery Date</label>
-              <Calendar 
+              <Calendar
                 id="deliveryDate"
                 value={selectedOrderDetail?.delivery_date ? new Date(selectedOrderDetail.delivery_date) : null}
                 onChange={(e) => {
@@ -1422,22 +1433,22 @@ const SalesOrder = () => {
 
             <div className="field">
               <label htmlFor="itemAmt">Item Amount</label>
-              <InputNumber 
+              <InputNumber
                 id="itemAmt"
                 value={selectedOrderDetail.item_amt}
                 onValueChange={(e) => setSelectedOrderDetail({
                   ...selectedOrderDetail,
                   item_amt: e.value || 0
                 })}
-                mode="currency" 
-                currency="INR" 
+                mode="currency"
+                currency="INR"
                 locale="en-IN"
               />
             </div>
 
             <div className="field">
               <label htmlFor="ordQty">Order Qty</label>
-              <InputNumber 
+              <InputNumber
                 id="ordQty"
                 value={selectedOrderDetail.ord_qty}
                 onValueChange={(e) => setSelectedOrderDetail({
@@ -1450,9 +1461,9 @@ const SalesOrder = () => {
 
             <div className="field">
               <label htmlFor="desc1">Special Instruction</label>
-              <InputTextarea 
+              <InputTextarea
                 id="desc1"
-                value={selectedOrderDetail.desc1 || ''} 
+                value={selectedOrderDetail.desc1 || ''}
                 onChange={(e) =>
                   setSelectedOrderDetail({
                     ...selectedOrderDetail,
@@ -1467,12 +1478,12 @@ const SalesOrder = () => {
         )}
       </Dialog>
 
-      <Dialog 
+      <Dialog
         header={
           <div className="flex align-items-center w-full">
             <span>Measurement Details</span>
-            <Button 
-              icon="pi pi-pencil" 
+            <Button
+              icon="pi pi-pencil"
               onClick={handleEditMeasurement}
               className="p-button-rounded p-button-text"
               disabled={!measurementData}
@@ -1480,7 +1491,7 @@ const SalesOrder = () => {
             />
           </div>
         }
-        visible={measurementDialogVisible} 
+        visible={measurementDialogVisible}
         onHide={() => {
           setMeasurementDialogVisible(false);
           setMeasurementData(null);
@@ -1495,12 +1506,12 @@ const SalesOrder = () => {
             <div className="grid my-2">
               <div className="col-6 font-bold text-600">Customer Name:</div>
               <div className="col-6 font-medium text-right">{selectedOrder?.user?.fname}</div>
-              
-            <div className="col-6 font-bold text-600">Delivery Date:</div>
+
+              <div className="col-6 font-bold text-600">Delivery Date:</div>
               <div className="col-6 font-medium text-right">
                 {selectedItem.delivery_date ? formatDate(new Date(selectedItem.delivery_date)) : 'Not scheduled'}
               </div>
-              
+
               <div className="col-6 font-bold text-600">Trial Date:</div>
               <div className="col-6 font-medium text-right">
                 {selectedItem.trial_date ? formatDate(new Date(selectedItem.trial_date)) : 'Not scheduled'}
@@ -1570,17 +1581,17 @@ const SalesOrder = () => {
                   <div className="col-6 font-medium text-right">
                     {measurementData ? 'Classic' : 'No details available'}
                   </div>
-                  
+
                   <div className="col-6 font-bold text-600">Sleeve:</div>
                   <div className="col-6 font-medium text-right">
                     {measurementData ? 'Full' : 'No details available'}
                   </div>
-                  
+
                   <div className="col-6 font-bold text-600">Cuffs:</div>
                   <div className="col-6 font-medium text-right">
                     {measurementData ? 'Squared' : 'No details available'}
                   </div>
-                  
+
                   <div className="col-6 font-bold text-600">Pocket Type:</div>
                   <div className="col-6 font-medium text-right">
                     {measurementData ? 'Classic' : 'No details available'}
@@ -1592,7 +1603,7 @@ const SalesOrder = () => {
         )}
       </Dialog>
 
-      <Dialog 
+      <Dialog
         header="Edit Measurement Details"
         visible={editMeasurementDialogVisible}
         onHide={() => setEditMeasurementDialogVisible(false)}
@@ -1602,13 +1613,13 @@ const SalesOrder = () => {
         blockScroll
         footer={
           <div>
-            <Button 
-              label="Update" 
-              icon="pi pi-check" 
+            <Button
+              label="Update"
+              icon="pi pi-check"
               onClick={saveEditedMeasurements}
               autoFocus
               className="w-full"
-              loading={isSaving} 
+              loading={isSaving}
               disabled={isSaving}
             />
           </div>
@@ -1619,9 +1630,9 @@ const SalesOrder = () => {
             const measurementDetail = measurementData?.measurementDetails.find(
               detail => detail.measurementMaster.id === measurement.id
             );
-            
+
             const dataType = measurementDetail?.measurementMaster.data_type || 'text';
-            
+
             return (
               <div key={measurement.id} className="field my-3">
                 <label htmlFor={`measurement-${measurement.id}`} className="font-bold block mb-1">
@@ -1639,7 +1650,7 @@ const SalesOrder = () => {
         </div>
       </Dialog>
 
-      <Dialog 
+      <Dialog
         header="Confirm Delivery"
         visible={confirmDeliveredVisible}
         onHide={() => setConfirmDeliveredVisible(false)}
@@ -1647,20 +1658,20 @@ const SalesOrder = () => {
         modal
         footer={
           <div>
-            <Button 
-              label="No" 
-              icon="pi pi-times" 
-              onClick={() => setConfirmDeliveredVisible(false)} 
-              className="p-button-text" 
+            <Button
+              label="No"
+              icon="pi pi-times"
+              onClick={() => setConfirmDeliveredVisible(false)}
+              className="p-button-text"
             />
-            <Button 
-              label="Yes" 
-              icon="pi pi-check" 
+            <Button
+              label="Yes"
+              icon="pi pi-check"
               onClick={() => {
                 setConfirmDeliveredVisible(false);
                 handleDelivered();
-              }} 
-              autoFocus 
+              }}
+              autoFocus
             />
           </div>
         }
@@ -1673,7 +1684,7 @@ const SalesOrder = () => {
         </div>
       </Dialog>
 
-      <Dialog 
+      <Dialog
         header="Confirm Cancellation"
         visible={confirmCancelledVisible}
         onHide={() => setConfirmCancelledVisible(false)}
@@ -1681,20 +1692,20 @@ const SalesOrder = () => {
         modal
         footer={
           <div>
-            <Button 
-              label="No" 
-              icon="pi pi-times" 
-              onClick={() => setConfirmCancelledVisible(false)} 
-              className="p-button-text" 
+            <Button
+              label="No"
+              icon="pi pi-times"
+              onClick={() => setConfirmCancelledVisible(false)}
+              className="p-button-text"
             />
-            <Button 
-              label="Yes" 
-              icon="pi pi-check" 
+            <Button
+              label="Yes"
+              icon="pi pi-check"
               onClick={() => {
                 setConfirmCancelledVisible(false);
                 handleCancelled();
-              }} 
-              autoFocus 
+              }}
+              autoFocus
             />
           </div>
         }
