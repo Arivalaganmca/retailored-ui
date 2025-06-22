@@ -11,7 +11,7 @@ import { Sidebar } from 'primereact/sidebar';
 import { InputText } from 'primereact/inputtext';
 import { Divider } from 'primereact/divider';
 import { Skeleton } from 'primereact/skeleton';
-import { useDebounce } from 'primereact/hooks'; 
+import { useDebounce } from 'primereact/hooks';
 import { ReportsService } from '@/demo/service/reports.service';
 import { SalesOrderService } from '@/demo/service/sales-order.service';
 import FullPageLoader from '@/demo/components/FullPageLoader';
@@ -32,6 +32,8 @@ interface PendingOrderItem {
   productName: string;
   productRef: string;
   deliveryDate: string;
+  trialDate?: string;
+  receivedDate?: string;
   admsite_code: string;
   statusId: number;
   status: string;
@@ -69,8 +71,11 @@ const PendingSalesReport = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<PendingOrderItem | null>(null);
+  const [longPressOrder, setLongPressOrder] = useState<PendingOrderItem | null>(null);
+  const [showLongPressDialog, setShowLongPressDialog] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
   const lastOrderRef = useRef<HTMLDivElement>(null);
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const availableStatuses = [
     { id: 1, name: 'Pending' },
@@ -172,7 +177,7 @@ const PendingSalesReport = () => {
 
   const handleCreateViewJO = (item: PendingOrderItem) => {
     const { order_id, jobOrderStatus } = item;
-    
+
     if (jobOrderStatus.length === 0) {
       router.push(`/pages/orders/job-order?id=${order_id}&completed=false&source=pending-sales`);
     } else {
@@ -191,7 +196,7 @@ const PendingSalesReport = () => {
 
     try {
       setIsSaving(true);
-      
+
       await SalesOrderService.updateSalesOrderStatus(
         selectedItem.id,
         { status_id: statusId }
@@ -227,7 +232,7 @@ const PendingSalesReport = () => {
 
     try {
       setIsSaving(true);
-      
+
       await ReportsService.deleteSalesOrderItem(itemToDelete.id);
 
       await Toast.show({
@@ -254,6 +259,28 @@ const PendingSalesReport = () => {
     router.push(`/pages/orders/sales-order?id=${orderId}&source=pending-sales`);
   };
 
+  const handleCardPointerDown = (order: PendingOrderItem) => {
+    longPressTimeout.current = setTimeout(() => {
+      setLongPressOrder(order);
+      setShowLongPressDialog(true);
+    }, 600); // 600ms for long press
+  };
+
+  const handleCardPointerUp = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
+
+  // Helper to get initials from customer name
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   if (loading && !isFetchingMore && !debouncedSearchTerm) {
     return (
       <div className="flex flex-column p-3 lg:p-5" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -261,7 +288,7 @@ const PendingSalesReport = () => {
           <Skeleton width="10rem" height="2rem" />
           <Skeleton width="100%" height="2.5rem" className="md:w-20rem" />
         </div>
-  
+
         <div className="grid">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="col-12 md:col-6 lg:col-4">
@@ -271,9 +298,9 @@ const PendingSalesReport = () => {
                     <Skeleton width="8rem" height="1.25rem" />
                     <Skeleton width="5rem" height="1.25rem" />
                   </div>
-  
+
                   <Divider className="my-2" />
-  
+
                   <div className="flex flex-column gap-1">
                     <div className="flex justify-content-between">
                       <Skeleton width="6rem" height="1rem" />
@@ -288,9 +315,9 @@ const PendingSalesReport = () => {
                       <Skeleton width="7rem" height="1rem" />
                     </div>
                   </div>
-  
+
                   <Divider className="my-2" />
-  
+
                   <div className="flex gap-2">
                     <Skeleton width="100%" height="2rem" />
                     <Skeleton width="100%" height="2rem" />
@@ -308,12 +335,12 @@ const PendingSalesReport = () => {
   return (
     <div className="flex flex-column p-3 lg:p-5" style={{ maxWidth: '1200px', margin: '0 auto' }}>
       {isSaving && <FullPageLoader />}
-      
+
       <div className="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-4 gap-3">
         <h2 className="text-2xl m-0">Pending Sales Orders Report</h2>
         <span className="p-input-icon-left p-input-icon-right w-full">
           <i className="pi pi-search" />
-          <InputText 
+          <InputText
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search"
@@ -323,8 +350,8 @@ const PendingSalesReport = () => {
           {loading && debouncedSearchTerm ? (
             <i className="pi pi-spin pi-spinner" />
           ) : searchTerm ? (
-            <i 
-              className="pi pi-times cursor-pointer" 
+            <i
+              className="pi pi-times cursor-pointer"
               onClick={() => {
                 setSearchTerm('');
               }}
@@ -332,89 +359,81 @@ const PendingSalesReport = () => {
           ) : null}
         </span>
       </div>
-      
+
       <div className="grid">
         {orders.length > 0 ? (
-          orders.map((item, index) => (
-            <div 
-              key={`${item.order_id}-${item.id}`} 
-              className="col-12 md:col-6 lg:col-4"
-              ref={index === orders.length - 1 ? lastOrderRef : null}
-            >
-              <Card className="h-full">
-                <div className="flex flex-column gap-2">
-                  <div className="flex justify-content-between align-items-center">
-                    <span className="font-bold">{item.customerName}</span>
-                    <Tag 
-                      value={item.status}
-                      severity={getStatusSeverity(item.status)} 
-                    />
-                  </div>
-                  
-                  <Divider className="my-2" />
-                  
-                  <div className="flex flex-column gap-1">
-                    <div className="flex justify-content-between">
-                      <span className="text-600">Product:</span>
-                      <span>{item.productName}</span>
-                    </div>
-                    <div className="flex justify-content-between">
-                      <span className="text-600">Reference:</span>
-                      <span>{item.productRef}</span>
-                    </div>
-                    <div className="flex justify-content-between">
-                      <span className="text-600">Delivery Date:</span>
-                      <span>{item.deliveryDate ? formatDate(item.deliveryDate) : 'Not scheduled'}</span>
-                    </div>
-                    <div className="flex justify-content-between">
-                      <span className="text-600">JO Status:</span>
-                     <Tag 
-                        value={item.jobOrderStatus.length > 0 
-                          ? item.jobOrderStatus[0].status_name
-                          : 'Pending'}
-                        severity={getStatusSeverity(item.jobOrderStatus.length > 0 
-                          ? item.jobOrderStatus[0].status_name 
-                          : 'Pending')}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Divider className="my-2" />
-                  
-                  <div className="flex flex-column gap-2 mt-3">
-                    <Button 
-                      label={item.jobOrderStatus.length > 0 ? 'View Job Order' : 'Create Job Order'}
-                      icon={item.jobOrderStatus.length > 0 ? 'pi pi-eye' : 'pi pi-plus'}
-                      onClick={() => handleCreateViewJO(item)}
-                      className={`w-full ${item.jobOrderStatus.length > 0 ? 'p-button-info' : 'p-button-warning'}`}
-                    />
-                    
-                    <Button
-                        label="Change Status"
-                        icon="pi pi-cog"
-                        onClick={() => openStatusChangeDialog(item)}
-                        className="w-full p-button-secondary"
-                    />
-                
-                    <div className="flex gap-2">
-                        <Button 
-                            label="View Sales Order"
-                            icon="pi pi-eye"
-                            onClick={() => viewSalesOrder(item.order_id)}
-                            className="w-full"
+          orders.map((order) => (
+            <div key={order.id} className="col-12 md:col-6 lg:col-4 xl:col-3">
+              <div
+                className="cursor-pointer h-full"
+                onClick={() => viewSalesOrder(order.order_id)}
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') viewSalesOrder(order.order_id); }}
+                role="button"
+                aria-label={`Open order ${order.order_id}`}
+                style={{ outline: 'none' }}
+                onPointerDown={() => handleCardPointerDown(order)}
+                onPointerUp={handleCardPointerUp}
+                onPointerLeave={handleCardPointerUp}
+              >
+                <Card className="shadow-2 border-round-lg h-full">
+                  {/* Header Section */}
+                  <div className="flex justify-content-between align-items-start mb-3">
+                    <div className="flex align-items-center gap-2">
+                      <div className="bg-gray-100 border-round-lg p-2 flex align-items-center">
+                        <Tag
+                          value={getInitials(order.customerName)}
+                          style={{ width: 40, height: 40, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', background: '#f4f4f5', color: '#2563eb' }}
+                          className="p-0"
                         />
-                        <Button 
-                            icon="pi pi-trash"
-                            onClick={() => confirmDelete(item)}
-                            className="p-button-danger"
-                            style={{ width: '20%' }}
-                            disabled={item.jobOrderStatus.length > 0 && 
-                              item.jobOrderStatus[item.jobOrderStatus.length - 1].status_name === 'Completed'}
-                        />
+                      </div>
+                      <div className="flex flex-column">
+                        <span className="text-500">{order.customerName}</span>
+                        <span className="font-medium">Order No: {order.order_id}</span>
+                      </div>
+                    </div>
+                    <div className="flex align-items-center gap-2">
+                      <i className="pi pi-tag text-gray-700"></i>
+                      <span className="text-gray-700">Stitching</span>
                     </div>
                   </div>
-                </div>
-              </Card>
+
+                  {/* Item Name */}
+                  <div className="flex align-items-center gap-2 mb-4">
+                    <i className="pi pi-inbox text-xl text-gray-700"></i>
+                    <span className="font-medium text-lg">{order.productName}</span>
+                  </div>
+
+                  {/* Status Tag */}
+                  <div className="mb-4">
+                    <Tag
+                      value={order.status}
+                      severity={getStatusSeverity(order.status)}
+                      className="px-3 py-2"
+                    />
+                  </div>
+
+                  {/* Dates Section */}
+                  <div className="flex flex-column gap-2">
+                    {order.trialDate && (
+                      <div className="flex align-items-center gap-2">
+                        <i className="pi pi-calendar text-gray-600"></i>
+                        <span className="text-600">Trial: {formatDate(order.trialDate)}</span>
+                      </div>
+                    )}
+                    <div className="flex align-items-center gap-2">
+                      <i className="pi pi-box text-gray-600"></i>
+                      <span className="text-600">Delivery: {formatDate(order.deliveryDate)}</span>
+                    </div>
+                    {order.receivedDate && (
+                      <div className="flex align-items-center gap-2">
+                        <i className="pi pi-check-circle text-gray-600"></i>
+                        <span className="text-600">Received: {formatDate(order.receivedDate)}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
             </div>
           ))
         ) : (
@@ -436,11 +455,11 @@ const PendingSalesReport = () => {
         </div>
       )}
 
-      <Sidebar 
-        visible={statusSidebarVisible} 
+      <Sidebar
+        visible={statusSidebarVisible}
         onHide={() => setStatusSidebarVisible(false)}
         position="bottom"
-        style={{ 
+        style={{
           width: '100%',
           height: 'auto',
           maxHeight: '62vh',
@@ -466,15 +485,15 @@ const PendingSalesReport = () => {
                   className="w-full p-3 text-lg justify-content-start p-button-outlined"
                   icon={
                     status.name === 'Completed' ? 'pi pi-check-circle' :
-                    status.name === 'In Progress' ? 'pi pi-spinner' :
-                    status.name === 'Pending' ? 'pi pi-clock' :
-                    status.name === 'Cancelled' ? 'pi pi-times-circle' :
-                    'pi pi-info-circle'
+                      status.name === 'In Progress' ? 'pi pi-spinner' :
+                        status.name === 'Pending' ? 'pi pi-clock' :
+                          status.name === 'Cancelled' ? 'pi pi-times-circle' :
+                            'pi pi-info-circle'
                   }
                   disabled={
-                    (status.id) === selectedItem?.statusId || 
+                    (status.id) === selectedItem?.statusId ||
                     ((status.id) === 3 && (
-                      !selectedItem?.jobOrderStatus?.length || 
+                      !selectedItem?.jobOrderStatus?.length ||
                       selectedItem.jobOrderStatus[selectedItem.jobOrderStatus.length - 1].status_name !== 'Completed'
                     ))
                   }
@@ -485,34 +504,73 @@ const PendingSalesReport = () => {
         </div>
       </Sidebar>
 
-      <Dialog 
-        header="Confirm Delete" 
-        visible={deleteConfirmVisible} 
+      <Dialog
+        header="Confirm Delete"
+        visible={deleteConfirmVisible}
         onHide={() => setDeleteConfirmVisible(false)}
         style={{ width: '90vw', maxWidth: '500px' }}
       >
         <div className="flex flex-column gap-3 mt-2">
           <p>
-            {itemToDelete && orders.filter(o => o.order_id === itemToDelete.order_id).length === 1 
+            {itemToDelete && orders.filter(o => o.order_id === itemToDelete.order_id).length === 1
               ? "This is the only item in the Sales Order. Deleting this will delete the entire Sales Order. Continue?"
               : "Are you sure you want to delete this item?"}
           </p>
-          
+
           <div className="flex justify-content-end gap-2 mt-3">
-            <Button 
-              label="Cancel" 
-              icon="pi pi-times" 
+            <Button
+              label="Cancel"
+              icon="pi pi-times"
               onClick={() => setDeleteConfirmVisible(false)}
               className="p-button-text"
             />
-            <Button 
-              label="Delete" 
-              icon="pi pi-trash" 
+            <Button
+              label="Delete"
+              icon="pi pi-trash"
               onClick={handleDeleteItem}
               className="p-button-danger"
               loading={isSaving}
             />
           </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        header="Order Options"
+        visible={showLongPressDialog}
+        onHide={() => setShowLongPressDialog(false)}
+        style={{ width: '90vw', maxWidth: '350px' }}
+        closable
+        dismissableMask
+      >
+        <div className="flex flex-column gap-3">
+          <Button
+            label="Create Job Order"
+            icon="pi pi-plus-circle"
+            className="p-button-success"
+            onClick={() => {
+              if (longPressOrder) handleCreateViewJO(longPressOrder);
+              setShowLongPressDialog(false);
+            }}
+          />
+          <Button
+            label="Change Status"
+            icon="pi pi-refresh"
+            className="p-button-info"
+            onClick={() => {
+              if (longPressOrder) openStatusChangeDialog(longPressOrder);
+              setShowLongPressDialog(false);
+            }}
+          />
+          <Button
+            label="Delete"
+            icon="pi pi-trash"
+            className="p-button-danger"
+            onClick={() => {
+              if (longPressOrder) confirmDelete(longPressOrder);
+              setShowLongPressDialog(false);
+            }}
+          />
         </div>
       </Dialog>
     </div>

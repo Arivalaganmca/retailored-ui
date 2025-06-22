@@ -689,8 +689,6 @@ const SalesOrder = () => {
     }
   };
 
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
   if (loading && !isFetchingMore && !debouncedSearchTerm) {
     return (
       <div className="flex flex-column p-3 lg:p-5" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -947,118 +945,109 @@ const SalesOrder = () => {
 
             <Divider />
 
-            <div className="flex justify-content-between align-items-center mb-3">
-              <h5 className="m-0">Order Items</h5>
-            </div>
+            <h5 className="m-0 mb-3">Order Items</h5>
 
             {selectedOrder.orderDetails?.map((item) => (
-              <div key={item.id} className="mb-3">
-                <Card className="surface-50">
-                  <div className="flex md:flex-row justify-content-between align-items-start md:align-items-center gap-3 p-3">
-                    <div className="flex sm:flex-row align-items-start sm:align-items-center gap-3 w-full md:w-auto">
-                      <span className="font-semibold text-lg md:text-base">Item Ref: {item.item_ref || 'Not Available'}</span>
-                      <Tag value="Pending" severity="warning" />
+              <div key={item.id} className="mb-4 surface-50 p-3 border-round">
+                <div className="grid">
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Item Ref</label>
+                      <p className="m-0 font-medium">{item.item_ref || 'Not Available'}</p>
                     </div>
-                    <div className="flex align-items-center gap-2  md:w-auto justify-content-end">
-                      <Button
-                        label={expandedItems.has(item.id) ? "Hide" : "View"}
-                        icon={expandedItems.has(item.id) ? "pi pi-chevron-up" : "pi pi-chevron-down"}
-                        className="p-button-text p-button-sm"
-                        onClick={() => {
-                          setExpandedItems(prev => {
-                            const newSet = new Set(prev);
-                            if (newSet.has(item.id)) {
-                              newSet.delete(item.id);
-                            } else {
-                              newSet.add(item.id);
-                            }
-                            return newSet;
-                          });
-                        }}
-                      />
+                  </div>
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Job Order No</label>
+                      <p className="m-0 font-medium">{item.order_id}</p>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Item Name</label>
+                      <p className="m-0 font-medium">{item.material?.name || 'Not Available'}</p>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Jobber Name</label>
+                      <p className="m-0 font-medium">{item.jobOrderDetails?.[0]?.adminSite?.sitename || 'Not assigned'}</p>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Trial Date</label>
+                      <p className="m-0 font-medium">
+                        {item.trial_date ? formatDate(new Date(item.trial_date)) : 'Not scheduled'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="field">
+                      <label>Amount</label>
+                      <p className="m-0 font-medium">₹ {item.item_amt || 0}</p>
+                    </div>
+                  </div>
+                  <div className="col-12 mt-2">
+                    <div className="grid align-items-start">
+                      <div className="col-9">
+                        <div className="field">
+                          <label>Notes</label>
+                          <p className="m-0 font-medium">{item.desc1 || 'No Notes Available'}</p>
+                        </div>
+                      </div>
+                      <div className="col-3 flex justify-content-end pt-4">
+                        <Button
+                          icon="pi pi-pencil"
+                          onClick={() => handleEditOrderDetail(item)}
+                          className="p-button-rounded p-button"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {expandedItems.has(item.id) && (
-                    <div className="mt-3 pt-3 border-top-1 border-300">
-                      <div className="grid">
-                        <div className="col-12 sm:col-6">
-                          <div className="field">
-                            <label className="block font-medium mb-2">Item Name</label>
-                            <p className="m-0 text-lg sm:text-base">{item.material?.name || 'Not Available'}</p>
-                          </div>
-                        </div>
-                        <div className="col-12 sm:col-6">
-                          <div className="field">
-                            <label className="block font-medium mb-2">Jobber Name</label>
-                            <p className="m-0 text-lg sm:text-base">{item.jobOrderDetails?.[0]?.adminSite?.sitename || 'Not assigned'}</p>
-                          </div>
-                        </div>
-                        <div className="col-12 sm:col-6">
-                          <div className="field">
-                            <label className="block font-medium mb-2">Trial Date</label>
-                            <p className="m-0 text-lg sm:text-base">
-                              {item.trial_date ? formatDate(new Date(item.trial_date)) : 'Not scheduled'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="col-12 sm:col-6">
-                          <div className="field">
-                            <label className="block font-medium mb-2">Amount</label>
-                            <p className="m-0 text-lg sm:text-base">₹ {item.item_amt || 0}</p>
-                          </div>
-                        </div>
-                        <div className="col-12">
-                          <div className="field">
-                            <label>Notes</label>
-                            <p className="m-0 font-medium">{item.desc1 || 'No notes available'}</p>
-                          </div>
-                        </div>
-                        <div className="col-12 mt-2">
-                          <Button
-                            label={`Status (${item.orderStatus?.status_name || 'Unknown'})`}
-                            icon="pi pi-sync"
-                            onClick={() => {
-                              setSelectedDetail(item);
-                              setStatusSidebarVisible(true);
-                            }}
-                            severity={getStatusSeverity(item.orderStatus?.status_name) || undefined}
-                          />
-                        </div>
+                  <div className="col-12 mt-2">
+                    <Button
+                      label={`Status (${item.orderStatus?.status_name || 'Unknown'})`}
+                      icon="pi pi-sync"
+                      onClick={() => {
+                        setSelectedDetail(item);
+                        setStatusSidebarVisible(true);
+                      }}
+                      severity={getStatusSeverity(item.orderStatus?.status_name) || undefined}
+                    />
+                  </div>
 
-                        {item?.image_url && item.image_url.length > 0 && (
-                          <div className="col-12 mt-2">
-                            <Button
-                              label={`View Images (${item.image_url.length})`}
-                              icon="pi pi-image"
-                              className="p-button-outlined"
-                              onClick={() => handleImagePreview(item.image_url)}
-                            />
-                          </div>
-                        )}
-
-                        <div className="col-12 mt-2">
-                          <Button
-                            label="View Measurement Details"
-                            icon="pi pi-eye"
-                            className="p-button-outlined"
-                            onClick={() => handleViewMeasurement(item)}
-                          />
-                        </div>
-
-                        <div className="col-12 mt-2">
-                          <Button
-                            label="Update Status"
-                            icon="pi pi-pencil"
-                            onClick={() => openItemActionSidebar(item)}
-                            className="w-full"
-                          />
-                        </div>
-
-                      </div>
+                  {item?.image_url && item.image_url.length > 0 && (
+                    <div className="col-12 mt-2">
+                      <Button
+                        label={`View Images (${item.image_url.length})`}
+                        icon="pi pi-image"
+                        className="p-button-outlined"
+                        onClick={() => handleImagePreview(item.image_url)}
+                      />
                     </div>
                   )}
-                </Card>
+
+                  <div className="col-12 mt-2">
+                    <Button
+                      label="View Measurement Details"
+                      icon="pi pi-eye"
+                      className="p-button-outlined"
+                      onClick={() => handleViewMeasurement(item)}
+                    />
+                  </div>
+
+                  <div className="col-12 mt-2">
+                    <Button
+                      label="Update Status"
+                      icon="pi pi-pencil"
+                      onClick={() => openItemActionSidebar(item)}
+                      className="w-full"
+                    />
+                  </div>
+                  <Divider />
+                </div>
               </div>
             ))}
           </div>
